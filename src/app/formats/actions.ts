@@ -4,18 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { validateFormat, type FieldErrors, type FormatInput } from "@/lib/validation";
 
-export type FormState = { error?: string; values?: Record<string, string | string[]> };
-
-const text = (fd: FormData, key: string) => {
-  const v = String(fd.get(key) ?? "").trim();
-  return v === "" ? null : v;
-};
-const num = (fd: FormData, key: string) => {
-  const v = text(fd, key);
-  if (v === null) return null;
-  const n = Number(v);
-  return Number.isFinite(n) ? n : null;
+export type FormState = {
+  error?: string;
+  fieldErrors?: FieldErrors;
+  values?: Record<string, string | string[]>;
 };
 
 /** What the form sends back so a failed save keeps everything the user typed. */
@@ -28,33 +22,43 @@ function echo(fd: FormData): Record<string, string | string[]> {
   return values;
 }
 
-function read(fd: FormData) {
+type Parsed =
+  | { ok: false; state: FormState }
+  | {
+      ok: true;
+      format: Omit<FormatInput, "example_url" | "example_platform">;
+      example: { url: string; platform: string | null };
+      verticalIds: number[];
+    };
+
+/** Validates the form. On failure the state carries one message per bad field. */
+function parse(fd: FormData): Parsed {
+  const result = validateFormat(Object.fromEntries(fd.entries()));
+  if (!result.ok) {
+    const count = Object.keys(result.fieldErrors).length;
+    return {
+      ok: false,
+      state: {
+        error: count === 1 ? "One field needs fixing before this can be saved." : `${count} fields need fixing before this can be saved.`,
+        fieldErrors: result.fieldErrors,
+        values: echo(fd),
+      },
+    };
+  }
+  const { example_url, example_platform, ...format } = result.data;
   return {
-    format: {
-      name: text(fd, "name") ?? "",
-      creative_type: text(fd, "creative_type"),
-      trend_status: text(fd, "trend_status"),
-      region: text(fd, "region"),
-      heat: num(fd, "heat"),
-      ai_replicable: num(fd, "ai_replicable"),
-      ad_value: num(fd, "ad_value"),
-      new_in_7_days: num(fd, "new_in_7_days"),
-      mechanic: text(fd, "mechanic"),
-      hook: text(fd, "hook"),
-      why_works: text(fd, "why_works"),
-      brand_usage: text(fd, "brand_usage"),
-      prompt: text(fd, "prompt"),
-      swaps: text(fd, "swaps"),
-      first_seen: text(fd, "first_seen"),
-    },
-    verticalIds: fd.getAll("verticals").map(Number).filter(Number.isInteger),
-    example: { url: text(fd, "example_url"), platform: text(fd, "example_platform") },
+    ok: true,
+    format,
+    example: { url: example_url, platform: example_platform },
+    verticalIds: fd.getAll("verticals").map(Number).filter((n) => Number.isInteger(n) && n > 0),
   };
 }
 
 export async function createFormat(_prev: FormState, fd: FormData): Promise<FormState> {
   await requireUser();
-  const { format, verticalIds, example } = read(fd);
+  const parsed = parse(fd);
+  if (!parsed.ok) return parsed.state;
+  const { format, verticalIds, example } = parsed;
   const supabase = await createClient();
 
   const { data, error } = await supabase.from("formats").insert(format).select("id").single();
@@ -65,9 +69,7 @@ export async function createFormat(_prev: FormState, fd: FormData): Promise<Form
       .from("format_verticals")
       .insert(verticalIds.map((vertical_id) => ({ format_id: data.id, vertical_id })));
   }
-  if (example.url) {
-    await supabase.from("examples").insert({ format_id: data.id, url: example.url, platform: example.platform });
-  }
+  await supabase.from("examples").insert({ format_id: data.id, url: example.url, platform: example.platform });
 
   revalidatePath("/");
   redirect(`/formats/${data.id}`);
@@ -75,7 +77,9 @@ export async function createFormat(_prev: FormState, fd: FormData): Promise<Form
 
 export async function updateFormat(id: number, _prev: FormState, fd: FormData): Promise<FormState> {
   await requireUser();
-  const { format, verticalIds, example } = read(fd);
+  const parsed = parse(fd);
+  if (!parsed.ok) return parsed.state;
+  const { format, verticalIds, example } = parsed;
   const supabase = await createClient();
 
   const { data, error } = await supabase.from("formats").update(format).eq("id", id).select("id");
@@ -91,12 +95,8 @@ export async function updateFormat(id: number, _prev: FormState, fd: FormData): 
   // The form edits the first example link. Extra examples are left alone.
   const exampleId = Number(fd.get("example_id"));
   if (Number.isInteger(exampleId) && exampleId > 0) {
-    if (example.url) {
-      await supabase.from("examples").update({ url: example.url, platform: example.platform }).eq("id", exampleId);
-    } else {
-      await supabase.from("examples").delete().eq("id", exampleId);
-    }
-  } else if (example.url) {
+    await supabase.from("examples").update({ url: example.url, platform: example.platform }).eq("id", exampleId);
+  } else {
     await supabase.from("examples").insert({ format_id: id, url: example.url, platform: example.platform });
   }
 
