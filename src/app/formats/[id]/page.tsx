@@ -6,6 +6,7 @@ import { StarButton } from "@/components/star-button";
 import { StatusDot } from "@/components/status-dot";
 import { requireUser } from "@/lib/auth";
 import { getFormat } from "@/lib/formats";
+import { computeScore } from "@/lib/score";
 import { deleteFormat } from "../actions";
 
 export default async function FormatPage({ params }: PageProps<"/formats/[id]">) {
@@ -14,6 +15,8 @@ export default async function FormatPage({ params }: PageProps<"/formats/[id]">)
   const format = await getFormat(Number(id));
   // Someone else's format looks exactly like one that does not exist.
   if (!format) notFound();
+
+  const breakdown = computeScore({ ...format, verticalCount: format.verticals.length });
 
   const facts: [string, string | number | null][] = [
     ["Region", format.region],
@@ -74,6 +77,41 @@ export default async function FormatPage({ params }: PageProps<"/formats/[id]">)
             </div>
           ))}
         </dl>
+
+        <section className="mt-8">
+          <h2 className="text-sm font-semibold">Score</h2>
+          {format.score === null || !breakdown ? (
+            <p className="mt-2 text-sm text-muted">
+              No score yet. Add heat, AI replicability and ad value to get one.{" "}
+              <Link href={`/formats/${format.id}/edit`} className="underline underline-offset-4 hover:text-foreground">
+                Edit
+              </Link>
+            </p>
+          ) : (
+            <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-8">
+              <p className="font-mono text-5xl font-semibold leading-none text-accent" data-testid="score">
+                {format.score.toFixed(1)}
+                <span className="ml-1 text-sm font-normal text-muted">/ 100</span>
+              </p>
+              <table className="w-full text-sm">
+                <tbody>
+                  {breakdown.parts.map((part) => (
+                    <tr key={part.label} className="border-b border-border last:border-0">
+                      <th scope="row" className="py-1.5 pr-3 text-left font-normal">
+                        {part.label}
+                      </th>
+                      <td className="py-1.5 pr-3 text-xs text-muted">{part.detail}</td>
+                      <td className="py-1.5 text-right font-mono">
+                        {part.points.toFixed(1)}
+                        <span className="text-muted"> / {part.weight}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
 
         <section className="mt-8">
           <h2 className="text-sm font-semibold">Examples</h2>

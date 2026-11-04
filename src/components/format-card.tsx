@@ -7,6 +7,13 @@ export function FormatCard({ format }: { format: FormatWithRelations }) {
   return (
     <article className="card relative flex h-full flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
+        <span
+          className="font-mono text-lg font-semibold leading-none text-accent"
+          title={format.score === null ? "No score yet" : "Composite score, 0 to 100"}
+          data-testid="card-score"
+        >
+          {format.score === null ? <span className="text-muted">—</span> : format.score.toFixed(1)}
+        </span>
         <StatusDot status={format.trend_status} />
         {/* Sits above the card-wide link so the star gets its own click. */}
         <div className="relative z-10 -my-1.5 -mr-1.5 ml-auto">
