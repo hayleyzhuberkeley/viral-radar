@@ -5,8 +5,8 @@ import { apiAs, logInAs } from "./helpers";
  * Data isolation: user B cannot see user A's data.
  *
  * Given user A has five formats and user B has none,
- * when B logs in and opens the list and the direct link to one of A's formats,
- * then B sees an empty list and "Not found", and A's five formats are untouched.
+ * when B logs in and opens the list, the dashboard, and the direct link to one of A's formats,
+ * then B sees an empty list, zero in every stat, and "Not found", and A's five formats are untouched.
  */
 const NAMES = [1, 2, 3, 4, 5].map((n) => `Isolation test format ${n}`);
 
@@ -46,6 +46,11 @@ test.describe("data isolation", () => {
       await expect(page.getByRole("heading", { name: "Not found" })).toBeVisible();
       await expect(page.getByText("Isolation test format")).toHaveCount(0);
     }
+
+    // B's dashboard counts none of A's formats.
+    await page.goto("/dashboard");
+    await expect(page.getByTestId("stat-total")).toHaveText("0");
+    await expect(page.getByTestId("stat-average")).toHaveText("—");
 
     // Asking the database directly as B returns nothing, and B cannot delete A's rows.
     const b = await apiAs("B");
