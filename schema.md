@@ -8,6 +8,8 @@ erDiagram
     formats   ||--o{ examples : has
     formats   ||--o{ format_verticals : tagged
     verticals ||--o{ format_verticals : groups
+    users     ||--o{ stars : gives
+    formats   ||--o{ stars : receives
 ```
 
 ## Tables
@@ -73,13 +75,26 @@ Junction table connecting formats to verticals.
 
 Primary key is the pair (format_id, vertical_id), so a format cannot be tagged with the same vertical twice.
 
+### stars
+Junction table connecting users to formats. One table for everyone: each row says "this user starred this format".
+
+| Column | Type | Notes |
+|---|---|---|
+| user_id | uuid | Foreign key to users.id. Defaults to the logged-in user. |
+| format_id | number | Foreign key to formats.id |
+| starred_at | timestamp | Defaults to now |
+
+Primary key is the pair (user_id, format_id), so a user cannot star the same format twice.
+
 ## How the tables relate
 
 - **users to formats: one-to-many.** A user owns many formats. A format has exactly one owner.
 - **formats to examples: one-to-many.** A format has many example videos.
 - **formats to verticals: many-to-many**, through `format_verticals`. A format fits several industries, and an industry has many formats.
 
-Deleting a user deletes their formats. Deleting a format deletes its examples and its vertical tags.
+- **users to formats through stars: many-to-many.** A user stars many formats. The table is built so a format could be starred by many users, although today each user only ever sees their own formats.
+
+Deleting a user deletes their formats and stars. Deleting a format deletes its examples, its vertical tags and any stars on it.
 
 ## Who can see what
 
@@ -88,4 +103,5 @@ Row-level security is on for every table, so the database itself refuses cross-u
 - `users`: you can read and update only your own row.
 - `formats`: you can read, add, change and delete only rows where `user_id` is you.
 - `examples` and `format_verticals`: allowed only when the parent format is yours.
+- `stars`: you can read and remove only your own stars, and you can add a star only as yourself on a format you own.
 - `verticals`: any signed-in user can read the list. Nobody can change it through the app.

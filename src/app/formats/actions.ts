@@ -112,3 +112,19 @@ export async function deleteFormat(id: number) {
   revalidatePath("/");
   redirect("/");
 }
+
+/** Star or unstar a format. The database refuses stars on formats you do not own. */
+export async function setStar(formatId: number, starred: boolean) {
+  const user = await requireUser();
+  const supabase = await createClient();
+  if (starred) {
+    await supabase
+      .from("stars")
+      .upsert({ user_id: user.id, format_id: formatId }, { onConflict: "user_id,format_id", ignoreDuplicates: true });
+  } else {
+    await supabase.from("stars").delete().eq("user_id", user.id).eq("format_id", formatId);
+  }
+  revalidatePath("/");
+  revalidatePath("/starred");
+  revalidatePath(`/formats/${formatId}`);
+}
