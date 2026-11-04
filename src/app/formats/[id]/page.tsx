@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
+import { CopyButton } from "@/components/copy-button";
 import { DeleteButton } from "@/components/delete-button";
 import { StarButton } from "@/components/star-button";
 import { StatusDot } from "@/components/status-dot";
 import { requireUser } from "@/lib/auth";
+import { buildBrief } from "@/lib/brief";
 import { getFormat } from "@/lib/formats";
 import { computeScore } from "@/lib/score";
 import { deleteFormat } from "../actions";
@@ -31,9 +33,8 @@ export default async function FormatPage({ params }: PageProps<"/formats/[id]">)
     ["Opening hook", format.hook],
     ["Why it works", format.why_works],
     ["Brand usage", format.brand_usage],
-    ["Generation prompt", format.prompt],
-    ["Swap rules", format.swaps],
   ];
+  const brief = buildBrief(format);
 
   return (
     <>
@@ -139,6 +140,31 @@ export default async function FormatPage({ params }: PageProps<"/formats/[id]">)
               <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-muted">{body}</p>
             </section>
           ))}
+
+        <section className="mt-8">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-semibold">Replication brief</h2>
+              <p className="mt-1 text-xs text-muted">The prompt and the swap rules, ready to hand to a creative team.</p>
+            </div>
+            {brief && <CopyButton text={brief} label="Copy brief" />}
+          </div>
+          {brief ? (
+            <pre
+              className="mt-3 max-h-96 overflow-auto whitespace-pre-wrap rounded-lg border border-border bg-surface p-4 font-mono text-xs leading-relaxed text-muted"
+              data-testid="brief"
+            >
+              {brief}
+            </pre>
+          ) : (
+            <p className="mt-2 text-sm text-muted">
+              No brief yet. Add a generation prompt or swap rules to build one.{" "}
+              <Link href={`/formats/${format.id}/edit`} className="underline underline-offset-4 hover:text-foreground">
+                Edit
+              </Link>
+            </p>
+          )}
+        </section>
       </main>
     </>
   );
