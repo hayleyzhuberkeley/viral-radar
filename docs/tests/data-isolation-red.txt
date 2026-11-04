@@ -1,0 +1,28 @@
+
+Running 1 test using 1 worker
+
+  ✘  1 tests/data-isolation.spec.ts:36:7 › data isolation › user B cannot see user A's formats (3.5s)
+
+
+  1) tests/data-isolation.spec.ts:36:7 › data isolation › user B cannot see user A's formats ───────
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 404
+    Received: 200
+
+      43 |     for (const path of [`/formats/${aFormatIds[0]}`, `/formats/${aFormatIds[0]}/edit`]) {
+      44 |       const response = await page.goto(path);
+    > 45 |       expect(response?.status()).toBe(404);
+         |                                  ^
+      46 |       await expect(page.getByRole("heading", { name: "Not found" })).toBeVisible();
+      47 |       await expect(page.getByText("Isolation test format")).toHaveCount(0);
+      48 |     }
+        at /Users/bytedance/viral-radar-app/tests/data-isolation.spec.ts:45:34
+
+    Error Context: test-results/data-isolation-data-isolat-91f8c-cannot-see-user-A-s-formats/error-context.md
+
+    Error Context: test-results/data-isolation-data-isolat-91f8c-cannot-see-user-A-s-formats/error-context.md
+
+  1 failed
+    tests/data-isolation.spec.ts:36:7 › data isolation › user B cannot see user A's formats ────────

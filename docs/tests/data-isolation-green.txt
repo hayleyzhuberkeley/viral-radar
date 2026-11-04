@@ -1,0 +1,6 @@
+
+Running 1 test using 1 worker
+
+  ✓  1 tests/data-isolation.spec.ts:36:7 › data isolation › user B cannot see user A's formats (6.6s)
+
+  1 passed (10.1s)
