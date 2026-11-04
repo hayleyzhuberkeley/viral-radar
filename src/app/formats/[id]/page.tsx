@@ -8,6 +8,7 @@ import { StatusDot } from "@/components/status-dot";
 import { requireUser } from "@/lib/auth";
 import { buildBrief } from "@/lib/brief";
 import { getFormat } from "@/lib/formats";
+import { nextStep } from "@/lib/guide";
 import { computeScore } from "@/lib/score";
 import { deleteFormat } from "../actions";
 
@@ -35,6 +36,7 @@ export default async function FormatPage({ params }: PageProps<"/formats/[id]">)
     ["Brand usage", format.brand_usage],
   ];
   const brief = buildBrief(format);
+  const next = nextStep(format);
 
   return (
     <>
@@ -69,6 +71,15 @@ export default async function FormatPage({ params }: PageProps<"/formats/[id]">)
             <DeleteButton name={format.name} action={deleteFormat.bind(null, format.id)} />
           </div>
         </div>
+
+        <p className="mt-6 flex flex-wrap items-center gap-3 rounded-md border border-accent/40 bg-accent/5 px-3 py-2 text-sm" data-testid="next-step">
+          <span>{next.text}</span>
+          {next.href && next.action && (
+            <Link href={next.href} className="btn-quiet">
+              {next.action}
+            </Link>
+          )}
+        </p>
 
         <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-4 border-y border-border py-6 sm:grid-cols-3">
           {facts.map(([label, value]) => (
