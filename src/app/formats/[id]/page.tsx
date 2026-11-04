@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
 import { DeleteButton } from "@/components/delete-button";
+import { StarButton } from "@/components/star-button";
 import { StatusDot } from "@/components/status-dot";
 import { requireUser } from "@/lib/auth";
 import { getFormat } from "@/lib/formats";
@@ -57,6 +58,7 @@ export default async function FormatPage({ params }: PageProps<"/formats/[id]">)
             )}
           </div>
           <div className="flex items-center gap-2">
+            <StarButton formatId={format.id} name={format.name} starred={format.starred} />
             <Link href={`/formats/${format.id}/edit`} className="btn-quiet">
               Edit
             </Link>

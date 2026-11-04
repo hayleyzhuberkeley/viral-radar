@@ -5,19 +5,24 @@ import type { Example, Format, Vertical } from "@/lib/types";
 export type FormatWithRelations = Format & {
   verticals: Vertical[];
   examples: Example[];
+  starred: boolean;
 };
 
 type Row = Format & {
   format_verticals: { verticals: Vertical | null }[] | null;
   examples: Example[] | null;
+  stars: { user_id: string }[] | null;
 };
 
-const SELECT = "*, format_verticals(verticals(id, name)), examples(*)";
+// Row-level security returns only the logged-in user's own stars, so any row
+// under "stars" means "I starred this".
+const SELECT = "*, format_verticals(verticals(id, name)), examples(*), stars(user_id)";
 
 function shape(row: Row): FormatWithRelations {
-  const { format_verticals, examples, ...format } = row;
+  const { format_verticals, examples, stars, ...format } = row;
   return {
     ...format,
+    starred: (stars ?? []).length > 0,
     verticals: (format_verticals ?? [])
       .map((fv) => fv.verticals)
       .filter((v): v is Vertical => v !== null)
@@ -27,7 +32,7 @@ function shape(row: Row): FormatWithRelations {
 }
 
 /** Every format the logged-in user owns, newest first. Row-level security scopes it. */
-export async function listFormats(): Promise<FormatWithRelations[]> {
+export async function listFormats(options: { starredOnly?: boolean } = {}): Promise<FormatWithRelations[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("formats")
@@ -35,7 +40,8 @@ export async function listFormats(): Promise<FormatWithRelations[]> {
     .order("created_at", { ascending: false })
     .returns<Row[]>();
   if (error) throw new Error(error.message);
-  return (data ?? []).map(shape);
+  const formats = (data ?? []).map(shape);
+  return options.starredOnly ? formats.filter((f) => f.starred) : formats;
 }
 
 /** One format, or null when it does not exist or belongs to someone else. */
