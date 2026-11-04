@@ -17,6 +17,8 @@ const baseURL = process.env.BASE_URL ?? "http://localhost:3000";
 export default defineConfig({
   testDir: "tests",
   timeout: 60_000,
+  // The dev server compiles a page the first time it is opened, which can take a few seconds.
+  expect: { timeout: 10_000 },
   workers: 1,
   reporter: [["list"]],
   use: { baseURL },
