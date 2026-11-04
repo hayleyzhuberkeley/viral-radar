@@ -21,6 +21,26 @@ export function AuthForm({ mode, action }: Props) {
         {isSignup ? "Your radar is private. Only you see what you log." : "Welcome back."}
       </p>
 
+      <div className="mt-6 rounded-md border border-border bg-surface p-4 text-sm">
+        <p>
+          For brand and agency strategists who have to answer <span className="text-accent">&ldquo;what should we make next?&rdquo;</span>
+        </p>
+        <ol className="mt-3 flex flex-col gap-1.5 text-muted">
+          <li>
+            <span className="font-mono text-foreground">1</span> Log the viral video formats you spot.
+          </li>
+          <li>
+            <span className="font-mono text-foreground">2</span> Score each one from 0 to 100.
+          </li>
+          <li>
+            <span className="font-mono text-foreground">3</span> Star a shortlist for your client.
+          </li>
+          <li>
+            <span className="font-mono text-foreground">4</span> Copy a brief for your creative team.
+          </li>
+        </ol>
+      </div>
+
       <form action={formAction} className="mt-8 flex flex-col gap-4" noValidate>
         <label className="flex flex-col gap-1 text-sm">
           Email

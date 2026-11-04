@@ -2,10 +2,12 @@ import Link from "next/link";
 import { AppHeader } from "@/components/app-header";
 import { FindBar } from "@/components/find-bar";
 import { FormatGrid } from "@/components/format-card";
+import { Guide } from "@/components/guide";
 import { ViewTabs } from "@/components/view-tabs";
 import { requireUser } from "@/lib/auth";
 import { applyFind, isFiltering, readFind } from "@/lib/find";
 import { listFormats, listVerticals } from "@/lib/formats";
+import { guideSteps } from "@/lib/guide";
 
 type Props = {
   view: "/" | "/starred";
@@ -16,7 +18,8 @@ type Props = {
 export async function RadarView({ view, searchParams }: Props) {
   const user = await requireUser();
   const starredOnly = view === "/starred";
-  const [all, verticals, params] = await Promise.all([listFormats({ starredOnly }), listVerticals(), searchParams]);
+  const [everything, verticals, params] = await Promise.all([listFormats(), listVerticals(), searchParams]);
+  const all = starredOnly ? everything.filter((f) => f.starred) : everything;
 
   const find = readFind(params);
   const filtering = isFiltering(find);
@@ -45,16 +48,27 @@ export async function RadarView({ view, searchParams }: Props) {
           </Link>
         </div>
 
+        {!starredOnly && <Guide steps={guideSteps(everything)} />}
+
         <ViewTabs current={view} />
 
         {all.length === 0 ? (
-          <div className="mt-10 rounded-lg border border-dashed border-border px-6 py-16 text-center">
+          <div className="mt-10 rounded-lg border border-dashed border-border px-6 py-12 text-center">
             <p className="text-sm text-muted">
-              {starredOnly ? "Tap the ☆ on any format to keep it here." : "Log the first format you want to track."}
+              {starredOnly
+                ? "Tap the ☆ on any format to keep it here."
+                : "Your radar is empty. Start with step 1 above, or bring in a spreadsheet you already have."}
             </p>
-            <Link href={starredOnly ? "/" : "/formats/new"} className="btn-quiet mt-4 inline-block">
-              {starredOnly ? "See all formats" : "Add format"}
-            </Link>
+            <div className="mt-4 flex flex-wrap justify-center gap-3">
+              <Link href={starredOnly ? "/" : "/formats/new"} className="btn-quiet">
+                {starredOnly ? "See all formats" : "Add format"}
+              </Link>
+              {!starredOnly && (
+                <Link href="/import" className="btn-quiet">
+                  Import a CSV
+                </Link>
+              )}
+            </div>
           </div>
         ) : (
           <>
