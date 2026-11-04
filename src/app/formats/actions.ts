@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
+import { computeScore } from "@/lib/score";
 import { createClient } from "@/lib/supabase/server";
 import { validateFormat, type FieldErrors, type FormatInput } from "@/lib/validation";
 
@@ -26,7 +27,7 @@ type Parsed =
   | { ok: false; state: FormState }
   | {
       ok: true;
-      format: Omit<FormatInput, "example_url" | "example_platform">;
+      format: Omit<FormatInput, "example_url" | "example_platform"> & { score: number | null };
       example: { url: string; platform: string | null };
       verticalIds: number[];
     };
@@ -45,12 +46,15 @@ function parse(fd: FormData): Parsed {
       },
     };
   }
-  const { example_url, example_platform, ...format } = result.data;
+  const { example_url, example_platform, ...fields } = result.data;
+  const verticalIds = [...new Set(fd.getAll("verticals").map(Number).filter((n) => Number.isInteger(n) && n > 0))];
+  // The score is worked out here, on every save, never typed in.
+  const score = computeScore({ ...fields, verticalCount: verticalIds.length })?.score ?? null;
   return {
     ok: true,
-    format,
+    format: { ...fields, score },
     example: { url: example_url, platform: example_platform },
-    verticalIds: fd.getAll("verticals").map(Number).filter((n) => Number.isInteger(n) && n > 0),
+    verticalIds,
   };
 }
 
