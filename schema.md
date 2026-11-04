@@ -105,3 +105,14 @@ Row-level security is on for every table, so the database itself refuses cross-u
 - `examples` and `format_verticals`: allowed only when the parent format is yours.
 - `stars`: you can read and remove only your own stars, and you can add a star only as yourself on a format you own.
 - `verticals`: any signed-in user can read the list. Nobody can change it through the app.
+
+## Compared with section 3 of PLAN.md
+
+The agent built what was designed. Six tables in the plan, six in the database: `users`, `formats`, `examples`, `verticals`, `format_verticals`, `stars`. Every relationship in the plan's diagram exists as a foreign key.
+
+Differences, all small:
+
+- `formats.creative_type` has a sixth value, "UGC w/o Avatar". `examples.platform` has "YouTube" and "Other". My real data needed them.
+- `formats.user_id` and `stars.user_id` default to the logged-in user. The plan did not say, and it means the app cannot forget to set the owner.
+- `created_at` and `starred_at` are timestamps. The plan called them dates.
+- The plan described row-level security in one sentence. The database has one policy per table and action, listed above.
