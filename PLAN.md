@@ -141,3 +141,28 @@ Borrowing from:
 4. If CSV import is cut entirely, I replace it with a "random pick" button so I still ship three of my own.
 
 Never cut: the seven spine features and the two tests.
+
+---
+
+## Plan vs. Reality
+
+Added at the end of the build. Everything above this line is the original plan, unchanged.
+
+| Planned feature | Shipped / Changed / Cut | Status (Done/Backlogged) | Learning | What changed and why (one line) |
+|---|---|---|---|---|
+| 1. Sign up and login | Shipped | Done | The agent could write the code but not create the accounts it runs on. GitHub, Supabase and Vercel each needed me. | Email and password as planned, with "Confirm email" turned off because the free tier sends only a few emails an hour. |
+| 2. Data model | Changed | Done | A plan that lists exact values will be wrong about some of them. My real data had a creative type and two platforms I forgot. | Added "UGC w/o Avatar", "YouTube" and "Other", and moved the `stars` table to the feature that uses it. |
+| 3. Create, read, update, delete | Shipped | Done | "Are you sure?" was the easy part. Keeping what I typed after a failed save took a bug fix in the next feature. | Built as planned. |
+| 4. Validation | Changed | Done | Writing the rules once and showing whatever comes back kept the message and the check from disagreeing. | The example link shipped as optional in feature 3 and became required here, one pull request late. |
+| 5. Stars | Shipped | Done | A star on a card that is itself a link needs care, or the click opens the page. | Built as planned. `starred_at` is a timestamp, not a date. |
+| 6. Find things | Changed | Done | The browser test found a bug the agent had not seen: "Clear" left the old text in the search box. | Region is not a filter. It was first on my cut list and nobody missed it. |
+| 7. Dashboard | Shipped | Done | "Average score" needed a rule for formats with no score. I had not thought about it until the number looked wrong. | Unscored formats count in the total and are left out of the average. |
+| 8. Composite score (mine) | Changed | Done | A formula is not a full spec. It says nothing about blanks. | No score unless heat, AI replicability and ad value are all filled in. The plan did not say. |
+| 9. Replication brief (mine) | Changed | Done | The agent added things I did not ask for, and they were the right things. I should still have been asked. | The copied text also carries the hook, the mechanic and the reference link. |
+| 10. CSV import (mine) | Shipped | Done | The risk I named, three related tables without duplicates, turned out fine. The real limit was request size, which I had not named. | The browser reads the file and sends 25 rows at a time. Duplicates are matched on name. |
+| Test 1: data isolation | Changed | Done | The most honest way to break it, loosening the database rule, was refused by the agent's own safety check. | Shipped with feature 3, not feature 1, because there was nothing to isolate yet. The red run breaks the app layer. |
+| Test 2: dashboard | Shipped | Done | A test can fail because of its own test data. Mine was named "Dashboard test" and collided with the Dashboard link. | Built as planned. |
+| Automatic daily refresh | Cut | Backlogged | I was right to flag it as the thing I was least sure of, and right to keep the app independent of it. | Never started. The app is fed by hand and by CSV. |
+| Section 5: Vitest and Playwright split | Changed | Done | Fast unit tests caught logic mistakes. Slow browser tests caught the two bugs that mattered. | Vitest covers all the logic, not only the score. Playwright covers every feature, not only isolation. |
+
+**Biggest gap.** The plan put the data-isolation test in the first feature and described the red run as loosening the database rule. Neither happened. The test moved to feature 3, and the red run had to break the app instead of the database. The trail is in `prompts/auth.md`, `prompts/crud.md`, and pull requests #4 and #8.
