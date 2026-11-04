@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -26,7 +27,12 @@ export async function signUp(_prev: AuthState, formData: FormData): Promise<Auth
   if (!parsed.success) return { error: parsed.error.issues[0].message, email };
 
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp(parsed.data);
+  // Where the confirmation email sends people back to, when confirmation is on.
+  const origin = (await headers()).get("origin") ?? "";
+  const { data, error } = await supabase.auth.signUp({
+    ...parsed.data,
+    options: origin ? { emailRedirectTo: `${origin}/auth/confirm` } : undefined,
+  });
   if (error) return { error: friendly(error.message), email };
   // With email confirmation on, Supabase returns no session until the link is clicked.
   if (!data.session) {
