@@ -20,6 +20,7 @@ Sign up with any email and a password of eight characters or more. Every account
 | **Dashboard** | Total formats, average score, the hottest vertical this month, and a chart of formats per vertical. |
 | **Composite score** | Every format gets 0 to 100 from heat, freshness, AI replicability, vertical breadth and ad value, with the breakdown shown. |
 | **Replication brief** | One button copies the prompt, the swap rules and the reference link as plain text. |
+| **Guidance** | A four-step "How it works" card that ticks itself off from your data, and a "Next:" line on every format. |
 | **CSV import** | Upload a spreadsheet export. Bad rows are listed with the reason. The same file twice adds nothing. |
 
 ## Tools
@@ -69,8 +70,8 @@ You need Node.js 20 or newer and a free [Supabase](https://supabase.com) project
 ## Tests
 
 ```bash
-npm test          # 41 unit tests: validation, find, dashboard stats, score, brief, CSV import
-npm run test:e2e  # 9 browser tests against the running app and the real database
+npm test          # 45 unit tests: validation, find, dashboard stats, score, brief, CSV import, guide
+npm run test:e2e  # 12 browser tests against the running app and the real database
 ```
 
 The browser tests need two test accounts. Create `.env.test.local` with `TEST_USER_A_EMAIL`, `TEST_USER_A_PASSWORD`, `TEST_USER_B_EMAIL` and `TEST_USER_B_PASSWORD`. The accounts are created on first run. To run the same tests against the deployed app, set `BASE_URL`:
