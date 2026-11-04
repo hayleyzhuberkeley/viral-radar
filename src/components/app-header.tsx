@@ -16,6 +16,9 @@ export function AppHeader({ email }: { email: string }) {
             <Link href="/dashboard" className="hover:text-foreground">
               Dashboard
             </Link>
+            <Link href="/import" className="hover:text-foreground">
+              Import
+            </Link>
           </nav>
         </div>
         <form action={logOut} className="flex items-center gap-3 text-sm">

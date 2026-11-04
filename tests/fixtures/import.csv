@@ -1,0 +1,6 @@
+Format,Example 1,Creative Type,Trend Status,Verticals,Heat,New in 7 Days,AI Replicability,Ad Value,Opening Hook
+Import test Alpha,https://www.tiktok.com/@creator/video/111,UGC with Avatar,Rising,Gaming; App,80,4,5,4,"A hook with a comma, and a ""quote"""
+Import test Bravo,[watch](https://www.instagram.com/reel/abc/),CGI,Peak,Retail,60,1,3,3,Second hook
+,https://www.tiktok.com/@creator/video/222,CGI,Peak,Retail,60,1,3,3,No name on this row
+Import test Delta,not a link,CGI,Peak,Retail,60,1,3,3,Bad link
+Import test Echo,https://www.tiktok.com/@creator/video/333,CGI,Peak,Crypto,60,1,3,3,Bad vertical
