@@ -27,3 +27,20 @@ Issue: #3. Branch: `feature/auth`.
 - The agent could not create the GitHub repo. Its session blocked the upload three times until I added permission rules to my settings file.
 - The agent cannot create accounts. The Supabase project and its keys in `.env.local` are mine to set up, and the feature was verified only after that.
 - PLAN.md said the data-isolation test would ship in this pull request. There is no user data to isolate until feature 3, so the agent moved the test there. Logged for Plan vs. Reality.
+
+## Later prompts on this branch
+
+4. > 你直接弄吧
+   (Just do it yourself.) Sent with my Supabase project link, after the agent had given me setup steps.
+
+5. > 用chrome
+   (Use Chrome.) The agent's own browser was not signed in to Supabase, so I let it drive my signed-in Chrome.
+
+What happened: the agent read the project URL and the public anon key, ran the migration in the Supabase SQL Editor, and left the service role key and database password untouched. It tried to switch off "Confirm email" and was blocked by its own safety check, so I flipped that toggle myself.
+
+## Verified against the real project
+
+- Signed out, `/` redirects to `/login`.
+- Blank form: "Enter your email." Short password: "Use a password with at least 8 characters." Wrong password: "Wrong email or password.", with the email kept in the field.
+- Sign up lands on the home page signed in, log out returns to `/login`, log in works again.
+- The new account appears as one row in `public.users`. A signed-out request to the same table returns no rows.
